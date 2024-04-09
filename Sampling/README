@@ -1,0 +1,8 @@
+This app can be used to demonstrate the concept of sampling.
+
+The app is very simple, and consists of a single page where a sample of size 10 can be taken from a normal population with mean 100 and standard deviation 5. 
+The mean and standard deviation of the sample are calculated and displayed on the page, along with a histogram of the sample and of the population.
+
+This app is easily integrated in a class when explaining the concept of sampling and sampling bias, and can be used to show how the sample mean and standard deviation change with different samples.
+
+An extended version of this app can be found in the Sampling_extended folder, where the user can choose the sample size, mean and standard deviation of the population. This extended version can be more useful to allow students to explore the effect of different sample sizes on the sample mean and standard deviation.
