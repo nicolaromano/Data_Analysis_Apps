@@ -1,0 +1,14 @@
+This app can be used to demonstrate the Central Limit Theorem, through a simulation-based approach.
+
+The Central Limit Theorem states that the distribution of the sum (or average) of a large number of independent, identically distributed random variables approaches a normal (Gaussian) distribution, regardless of the shape of the original distribution.
+
+In the app, it is possible to choose:
+
+- The distribution of the random variables (normal, uniform, exponential, bimodal or gamma)
+- The sample size for each sample
+- The number of samples to be generated
+
+When one of the parameters is changed, the app generates a new set of samples and plots the histogram of the sample means as well as the population distribution.
+Students can use the app to explore the Central Limit Theorem and understand how the sample size and the number of samples affect the convergence to the normal distribution.
+
+This can be easily run in class when explaining the CLT; further exploration can be done by students, for example, by comparing the convergence to the normal distribution for different sample sizes or distributions.
