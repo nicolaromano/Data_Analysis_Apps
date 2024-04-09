@@ -1,0 +1,8 @@
+This app can be used to demonstrate the concept of sampling.
+
+The app is an extension of the "Sampling" app, and just like the original app, allows sampling from a normal population. The user can choose the sample size, mean and standard deviation of the population. 
+
+The mean and standard deviation of the sample are calculated and displayed on the page, along with a histogram of the sample and of the population.
+
+Just like the original app, this is easily integrated in a class when explaining the concept of sampling and sampling bias, and can be used to show how the sample mean and standard deviation change with different samples, sample sizes, and characteristics of the population.
+This extended version can also be useful to allow students to explore the effect of different sample sizes on the sample mean and standard deviation in their own time.
