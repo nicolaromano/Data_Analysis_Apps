@@ -19,7 +19,7 @@ get_sampling_means <- function(population, sample_size, n_samples) {
 # UI
 ui <- fluidPage(
     titlePanel("The sampling distribution and the Central Limit Theorem"),
-    HTML("<div>This app can help you revise the concept of sampling distribution and the Central Limit Theorem.<br />It will generate a population of 1 million individuals from a distribution of your choice. Then, it will take a number of samples of a given size from this population and plot the sampling distribution of the means of the samples (called the <strong>sampling distribution</strong>).<br /><br />See how increasing the sample size and the number of samples affects the sampling distribution.</div><br />"),
+    HTML("<div>This app can help you revise the concept of sampling distribution and the Central Limit Theorem.<br />It will generate a population of 1 million individuals from a distribution of your choice. Then, it will take a number of samples of a given size from this population and plot the distribution of the means of the samples (called the <strong>sampling distribution</strong>).<br /><br />See how increasing the sample size and the number of samples affects the sampling distribution.</div><br />"),
     fluidRow(
         column(
             width = 4,
