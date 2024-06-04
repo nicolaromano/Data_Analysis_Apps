@@ -1,0 +1,19 @@
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+h2 {
+  font-size: 2em;
+  color: #dd0000;
+  text-align: center;
+}
+
+ol {
+  padding-bottom: 1em;
+}
+
+.description {
+  font-size: 1.5em;
+  color: #333;
+}
+
