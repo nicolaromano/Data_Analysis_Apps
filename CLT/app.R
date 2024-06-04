@@ -72,6 +72,14 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
     iv <- InputValidator$new()
+
+    my_theme <- theme(
+        axis.text = element_text(family = "Roboto", size = 14),
+        axis.title = element_text(family = "Roboto", size = 18),
+        plot.title = element_text(family = "Roboto", size = 20,
+            face = "italic")
+    )
+
     iv$add_rule("sample_size", sv_between(2, 1000))
     iv$add_rule("n_samples", sv_between(2, 1000))
     iv$enable()
@@ -81,8 +89,8 @@ server <- function(input, output, session) {
         rv$population <- switch(
             input$distribution,
             "Normal" = rnorm(1e6, 100, 5),
-            "Uniform" = runif(1e6, 70, 130),
-            "Exponential" = rexp(1e6, 1/100),
+            "Uniform" = runif(1e6, 70, 200),
+            "Exponential" = rexp(1e6, 1/50),
             "Bimodal" = c(
                 rnorm(5e5, 80, 5),
                 rnorm(5e5, 120, 5)
@@ -103,16 +111,24 @@ server <- function(input, output, session) {
             labs(
                 x = "Value",
                 y = "Density"
-            )
+            ) +
+            ggtitle("Distribution of the value in the population") +
+            annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+                label = paste("Mean:", format(mean(rv$population), digits=2), "- SD:", format(sd(rv$population), digits=2)),
+                family = "Roboto", size = 6
+            ) +
+            my_theme
     })
 
     output$sampling_distribution_plot <- renderPlot(
         {
         req(iv$is_valid())
 
-        get_sampling_means(rv$population,
+        sampling_means <- get_sampling_means(rv$population,
             input$sample_size,
-            input$n_samples) %>%
+            input$n_samples) 
+            
+        sampling_means %>%
             slice(1:input$n_samples) %>%
             ggplot(aes(x = sample_means)) +
             geom_histogram(aes(y = after_stat(density)),
@@ -123,7 +139,13 @@ server <- function(input, output, session) {
             labs(
                 x = "Sample mean",
                 y = "Density"
-            )
+            ) +
+            ggtitle(paste("Distribution of the means of", input$n_samples, "samples of size", input$sample_size)) +
+            annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1,
+                label = paste("Mean:", format(mean(sampling_means$sample_means), digits=2), "- SD:", format(sd(sampling_means$sample_means), digits=2)),
+                family = "Roboto", size = 6
+            ) +
+            my_theme
     })
 }
 
