@@ -42,7 +42,7 @@ ui <- fluidPage(
             numericInput(
                 "sample_size",
                 "Sample size",
-                value = 5,
+                value = 10,
                 min = 2,
                 max = 1000
             )
