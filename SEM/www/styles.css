@@ -1,0 +1,39 @@
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+h2 {
+  font-size: 2em;
+  color: #dd0000;
+  text-align: center;
+}
+
+ol {
+  padding-bottom: 1em;
+}
+
+.description {
+  font-size: 1.5em;
+  color: #333;
+}
+
+.intro {
+  font-size: 1.3em;
+  color: #333;
+  text-align: center;
+}
+
+.planet-img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 400px;
+}
+
+.btn {
+  margin-bottom: 2em;
+}
+
+.large {
+  font-size: 1.5em;
+ 
