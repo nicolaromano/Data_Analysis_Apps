@@ -3,14 +3,17 @@ library(shinyjs)
 library(dplyr)
 library(ggplot2)
 
-set.seed(102)
-
 sim_env <- new.env()
-sim_env$population_1 <- rnorm(10000, mean = 50, sd = 5)
-sim_env$population_2 <- rnorm(10000, mean = 50, sd = 5)
+sim_env$pop_size <- 100000
+sim_env$pop_mean_1 <- 50
+sim_env$pop_mean_2 <- 50
+sim_env$pop_sd_1 <- 5
+sim_env$pop_sd_2 <- 5
+sim_env$population_1 <- NULL
+sim_env$population_2 <- NULL
 sim_env$initial_n <- 20
-sim_env$animation_delay <- 300 # ms between frames
-sim_env$n_multi_point <- 50 # number of points to add when "add many" is clicked
+sim_env$animation_delay <- 300 # 50 # ms between frames
+sim_env$n_multi_point <- 5 # 150 # number of points to add when "add many" is clicked
 
 plot_style <- theme(
     axis.title = element_text(size = 18),
@@ -27,16 +30,24 @@ ui <- fluidPage(
         column(6, plotOutput("p_val_plot"))
     ),
     fluidRow(
+        column(12, hidden(
+            plotOutput("true_dist_plot")
+        ))
+    ),
+    fluidRow(
         column(12,
             align = "center",
             actionButton("sample_button", "Just one more measurement..."),
-            hidden(actionButton("add_many", "Add many measurements"),
-            hidden(actionButton("show_true", "Show true population distributions"))
+            hidden(actionButton("add_many", "Add many measurements")),
+            hidden(actionButton("show_true", "Show true population distributions")),
+            hidden(actionButton("reset", "Reset"))
         )
     )
 )
 
 server <- function(input, output, session) {
+    sim_env$population_1 <- rnorm(sim_env$pop_size, mean = sim_env$pop_mean_1, sd = sim_env$pop_sd_1)
+    sim_env$population_2 <- rnorm(sim_env$pop_size, mean = sim_env$pop_mean_2, sd = sim_env$pop_sd_2)
     sample1 <- sample(sim_env$population_1, size = sim_env$initial_n, replace = FALSE)
     sample2 <- sample(sim_env$population_2, size = sim_env$initial_n, replace = FALSE)
 
@@ -60,6 +71,27 @@ server <- function(input, output, session) {
             geom_boxplot() +
             labs(x = "Group", y = "Value") +
             plot_style
+    })
+
+    output$true_dist_plot <- renderPlot({
+        df <- data.frame(
+            value = c(sim_env$population_1, sim_env$population_2),
+            group = rep(c("A", "B"), each = length(sim_env$population_1))
+        )
+
+        ggplot(df, aes(x = value, fill = group)) +
+            geom_density(alpha = 0.2) +
+            labs(x = "Value", y = "Density") +
+            plot_style
+    })
+
+    observeEvent(input$show_true, {
+        show("true_dist_plot")
+        show("reset")
+        hide("show_true")
+        hide("add_many")
+        hide("boxplot")
+        hide("p_val_plot")
     })
 
     output$p_val_plot <- renderPlot({
@@ -135,6 +167,20 @@ server <- function(input, output, session) {
                 show("show_true")
             }
         })
+    })
+
+    # If we pressed "just one more measurement" more than 30 times, we show the "add many" button to speed up the process and the "show true" button to reveal the true distributions
+    observe({
+        if (length(rv$sample1) > sim_env$initial_n + 30) {
+            show("add_many")
+            show("show_true")
+            hide("sample_button")
+        }
+    })
+   
+    observeEvent(input$reset, {
+        new_seed <- sample.int(1e6, 1)
+        shinyjs::runjs(sprintf("var url = new URL(window.location.href); url.searchParams.set('seed', %d); window.location.href = url.toString();", new_seed))
     })
 }
 
