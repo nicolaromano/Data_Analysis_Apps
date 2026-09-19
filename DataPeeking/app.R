@@ -9,6 +9,8 @@ sim_env <- new.env()
 sim_env$population_1 <- rnorm(10000, mean = 50, sd = 5)
 sim_env$population_2 <- rnorm(10000, mean = 50, sd = 5)
 sim_env$initial_n <- 20
+sim_env$animation_delay <- 300 # ms between frames
+sim_env$n_multi_point <- 50 # number of points to add when "add many" is clicked
 
 plot_style <- theme(
     axis.title = element_text(size = 18),
@@ -28,19 +30,24 @@ ui <- fluidPage(
         column(12,
             align = "center",
             actionButton("sample_button", "Just one more measurement..."),
-            hidden(actionButton("add_many", "Add many measurements"))
+            hidden(actionButton("add_many", "Add many measurements"),
+            hidden(actionButton("show_true", "Show true population distributions"))
         )
     )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
     sample1 <- sample(sim_env$population_1, size = sim_env$initial_n, replace = FALSE)
     sample2 <- sample(sim_env$population_2, size = sim_env$initial_n, replace = FALSE)
 
     rv <- reactiveValues(
         sample1 = sample1,
         sample2 = sample2,
-        pvals = t.test(sample1, sample2)$p.value
+        pvals = t.test(sample1, sample2)$p.value,
+        # Used to track how many more samples to add automatically during the animation
+        # of add_many
+        auto_remaining = 0,
+        animating = FALSE
     )
 
     output$boxplot <- renderPlot({
@@ -102,18 +109,33 @@ server <- function(input, output) {
     })
 
     observeEvent(input$add_many, {
-        for (i in 1:20) {
+        hide("add_many")
+        rv$auto_remaining <- sim_env$n_multi_point
+        rv$animating <- TRUE
+    })
+
+    observe({
+        req(rv$animating)
+        invalidateLater(sim_env$animation_delay, session) # number of ms between each new sample
+
+        isolate({ # We isolate to avoid re-triggering this observer when rv$sample1 or rv$sample2 changes
             new_sample1 <- sample(sim_env$population_1, size = 1, replace = FALSE)
             new_sample2 <- sample(sim_env$population_2, size = 1, replace = FALSE)
+
             rv$sample1 <- c(rv$sample1, new_sample1)
             rv$sample2 <- c(rv$sample2, new_sample2)
 
             res <- t.test(rv$sample1, rv$sample2)
             rv$pvals <- c(rv$pvals, res$p.value)
-        }
+
+            rv$auto_remaining <- rv$auto_remaining - 1
+            if (rv$auto_remaining == 0) {
+                rv$animating <- FALSE
+                show("add_many")
+                show("show_true")
+            }
+        })
     })
 }
 
 shinyApp(ui, server)
-
-
