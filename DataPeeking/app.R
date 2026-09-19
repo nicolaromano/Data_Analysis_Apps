@@ -3,17 +3,16 @@ library(shinyjs)
 library(dplyr)
 library(ggplot2)
 
-sim_env <- new.env()
-sim_env$pop_size <- 100000
-sim_env$pop_mean_1 <- 50
-sim_env$pop_mean_2 <- 50
-sim_env$pop_sd_1 <- 5
-sim_env$pop_sd_2 <- 5
-sim_env$population_1 <- NULL
-sim_env$population_2 <- NULL
-sim_env$initial_n <- 20
-sim_env$animation_delay <- 300 # 50 # ms between frames
-sim_env$n_multi_point <- 5 # 150 # number of points to add when "add many" is clicked
+### Global simulation parameters ###
+default_seed <- 14
+pop_size <- 100000
+pop_mean_1 <- 50
+pop_mean_2 <- 50
+pop_sd_1 <- 5
+pop_sd_2 <- 5
+initial_n <- 20
+animation_delay <- 275 # ms between frames
+n_multi_point <- 150 # number of points to add when "add many" is clicked
 
 plot_style <- theme(
     axis.title = element_text(size = 18),
@@ -46,10 +45,20 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-    sim_env$population_1 <- rnorm(sim_env$pop_size, mean = sim_env$pop_mean_1, sd = sim_env$pop_sd_1)
-    sim_env$population_2 <- rnorm(sim_env$pop_size, mean = sim_env$pop_mean_2, sd = sim_env$pop_sd_2)
-    sample1 <- sample(sim_env$population_1, size = sim_env$initial_n, replace = FALSE)
-    sample2 <- sample(sim_env$population_2, size = sim_env$initial_n, replace = FALSE)
+    query <- isolate(parseQueryString(session$clientData$url_search))
+    if (!is.null(query$seed)) {
+        set.seed(as.numeric(query$seed))
+    } else {
+        set.seed(default_seed)
+    }
+
+    ### Simulation environment ###
+    sim_env <- new.env()
+    sim_env$population_1 <- rnorm(pop_size, mean = pop_mean_1, sd = pop_sd_1)
+    sim_env$population_2 <- rnorm(pop_size, mean = pop_mean_2, sd = pop_sd_2)
+
+    sample1 <- sample(sim_env$population_1, size = initial_n, replace = FALSE)
+    sample2 <- sample(sim_env$population_2, size = initial_n, replace = FALSE)
 
     rv <- reactiveValues(
         sample1 = sample1,
@@ -96,7 +105,7 @@ server <- function(input, output, session) {
 
     output$p_val_plot <- renderPlot({
         df <- data.frame(
-            sample_size = sim_env$initial_n:(sim_env$initial_n + length(rv$pvals) - 1),
+            sample_size = initial_n:(initial_n + length(rv$pvals) - 1),
             p_value = rv$pvals
         )
 
@@ -142,13 +151,13 @@ server <- function(input, output, session) {
 
     observeEvent(input$add_many, {
         hide("add_many")
-        rv$auto_remaining <- sim_env$n_multi_point
+        rv$auto_remaining <- n_multi_point
         rv$animating <- TRUE
     })
 
     observe({
         req(rv$animating)
-        invalidateLater(sim_env$animation_delay, session) # number of ms between each new sample
+        invalidateLater(animation_delay, session) # number of ms between each new sample
 
         isolate({ # We isolate to avoid re-triggering this observer when rv$sample1 or rv$sample2 changes
             new_sample1 <- sample(sim_env$population_1, size = 1, replace = FALSE)
@@ -169,15 +178,15 @@ server <- function(input, output, session) {
         })
     })
 
-    # If we pressed "just one more measurement" more than 30 times, we show the "add many" button to speed up the process and the "show true" button to reveal the true distributions
+    # If we pressed "just one more measurement" more than 20 times, we show the "add many" button to speed up the process and the "show true" button to reveal the true distributions
     observe({
-        if (length(rv$sample1) > sim_env$initial_n + 30) {
+        if (length(rv$sample1) > initial_n + 20) {
             show("add_many")
             show("show_true")
             hide("sample_button")
         }
     })
-   
+
     observeEvent(input$reset, {
         new_seed <- sample.int(1e6, 1)
         shinyjs::runjs(sprintf("var url = new URL(window.location.href); url.searchParams.set('seed', %d); window.location.href = url.toString();", new_seed))
